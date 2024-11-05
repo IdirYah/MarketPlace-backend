@@ -51,11 +51,11 @@ const loginUser = async(role,Model,req,res)=>{
         }
         const user = await Model.findOne({userName},)
         if(!user){
-            return res.status(StatusCodes.NOT_FOUND).json({message:"Invalid userName or password"})
+            return res.status(StatusCodes.UNAUTHORIZED).json({message:"Invalid userName or password"})
         }
         const isMatch = await bcrypt.compare(password,user.password)
         if(!isMatch){
-            return res.status(StatusCodes.BAD_REQUEST).json({message:"Invalid userName or password"})
+            return res.status(StatusCodes.UNAUTHORIZED).json({message:"Invalid userName or password"})
         }
         const token = jwt.sign({userId:user._id,role:role},process.env.JWT_SECRET,{expiresIn:"30d"})
         res.status(StatusCodes.OK).json({
