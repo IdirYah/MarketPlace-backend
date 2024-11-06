@@ -1,14 +1,18 @@
 import jwt from "jsonwebtoken"
 import { StatusCodes } from "http-status-codes"
+import ROLE from "../constants/role.js"
 
-const authUser = async(req,res,next)=>{
+const authUser = async(Role,req,res,next)=>{
     const authHeader = req.headers.authorization
     if(!authHeader || !authHeader.startsWith('Bearer ')){
-        return res.status(StatusCodes.UNAUTHORIZED).json({message:"invalid authentication"})
+        return res.status(StatusCodes.UNAUTHORIZED).json({message:"Invalid authentication"})
     }
     const token = authHeader.split(' ')[1]
     try {
         const payload = jwt.verify(token,process.env.JWT_SECRET)
+        if(payload.role !== Role){
+            return res.status(StatusCodes.FORBIDDEN).json({message:"Access denied"})
+        }
         req.userId = payload.userId
         req.role = payload.role
         next()
@@ -18,4 +22,7 @@ const authUser = async(req,res,next)=>{
     }
 }
 
-export default authUser
+const authVendeur = (req,res,next)=>authUser(ROLE.VENDEUR,req,res,next)
+const authAcheteur = (req,res,next)=>authUser(ROLE.ACHETEUR,req,res,next)
+
+export {authAcheteur,authVendeur}
