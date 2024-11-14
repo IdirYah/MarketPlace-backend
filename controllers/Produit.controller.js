@@ -1,5 +1,6 @@
 import {StatusCodes} from "http-status-codes"
 import Produit from "../models/Produit.model.js"
+import Commande from "../models/Commande.model.js"
 
 export const addProduct = async(req,res)=>{
     try {
@@ -95,6 +96,24 @@ export const getProductByPrice = async(req,res)=>{
             return res.status(StatusCodes.NOT_FOUND).json({message:"No product found with these prices"})
         }
         res.status(StatusCodes.OK).json(products)
+    }catch(error){
+        console.log(error.message)
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error:"Internal server error"})
+    }
+}
+
+export const deleteProduct = async(req,res)=>{
+    try {
+        const {idProduct} = req.params
+        if(!idProduct){
+            return res.status(StatusCodes.BAD_REQUEST).json({message:"Product Id is required"})
+        }
+        const result = await Produit.deleteOne({ _id: idProduct })
+        if (result.deletedCount === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json({ message: "Product not found" })
+        }
+        await Commande.deleteMany({produitId:idProduct})
+        res.status(StatusCodes.OK).json({message:"Product deleted successfully"})
     }catch(error){
         console.log(error.message)
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error:"Internal server error"})
